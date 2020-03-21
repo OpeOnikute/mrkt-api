@@ -9,8 +9,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var Collection *mongo.Collection
+// Database ...
+var Database *mongo.Database
 
+// DBCollection ...
+type dBCollection struct {
+	Entries *mongo.Collection
+	Users   *mongo.Collection
+}
+
+// Collections ...
+var Collections dBCollection
+
+// Connect ...
 func Connect() {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://root:root@localhost:27017"))
 	if err != nil {
@@ -22,5 +33,9 @@ func Connect() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Collection = client.Database("mrkt").Collection("entries")
+
+	Database = client.Database("mrkt")
+
+	Collections.Entries = Database.Collection("entries")
+	Collections.Users = Database.Collection("users")
 }

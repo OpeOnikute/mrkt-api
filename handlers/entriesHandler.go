@@ -23,13 +23,13 @@ func CreateEntry(params io.Reader) (*mongo.InsertOneResult, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return db.Collection.InsertOne(ctx, entry)
+	return db.Collections.Entries.InsertOne(ctx, entry)
 }
 
 // GetAllEntries gets all entries
 func GetAllEntries() ([]models.Entry, error) {
 	var results []models.Entry
-	cursor, err := db.Collection.Find(context.Background(), bson.M{})
+	cursor, err := db.Collections.Entries.Find(context.Background(), bson.M{})
 	if err != nil {
 		return results, err
 	}
@@ -43,7 +43,7 @@ func GetEntryByID(requestID string) (models.Entry, error) {
 	var entry models.Entry
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	err := db.Collection.FindOne(ctx, bson.M{"_id": id}).Decode(&entry)
+	err := db.Collections.Entries.FindOne(ctx, bson.M{"_id": id}).Decode(&entry)
 	return entry, err
 }
 
@@ -60,7 +60,7 @@ func UpdateEntryByID(requestID string, entry models.Entry) (*mongo.UpdateResult,
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	result, err := db.Collection.UpdateOne(ctx, bson.M{"_id": id}, update)
+	result, err := db.Collections.Entries.UpdateOne(ctx, bson.M{"_id": id}, update)
 	return result, err
 }
 
@@ -75,6 +75,6 @@ func DeleteEntryByID(entry models.Entry) (*mongo.UpdateResult, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	result, err := db.Collection.UpdateOne(ctx, bson.M{"_id": entry.ID}, update)
+	result, err := db.Collections.Entries.UpdateOne(ctx, bson.M{"_id": entry.ID}, update)
 	return result, err
 }

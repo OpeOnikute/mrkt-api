@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// AddEntryEndpoint ...
 func AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("content-type", "application/json")
 	result, err := handlers.CreateEntry(request.Body)
@@ -18,6 +19,7 @@ func AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(response).Encode(result)
 }
 
+// UpdateEntryEndpoint ...
 func UpdateEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	// set response headers
 	response.Header().Set("content-type", "application/json")
