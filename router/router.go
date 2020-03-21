@@ -19,6 +19,7 @@ func GetRouter() *mux.Router {
 
 	adminrouter := router.PathPrefix("/admin").Subrouter()
 	adminrouter.HandleFunc("", controllers.CreateUserEndpoint).Methods("POST")
+	adminrouter.HandleFunc("/login", controllers.AdminLoginEndpoint).Methods("POST")
 	adminrouter.HandleFunc("/{id}", controllers.UpdateUserEndpoint).Methods("PUT")
 	adminrouter.HandleFunc("", controllers.GetUsersEndpoint).Methods("GET")
 	adminrouter.HandleFunc("/{id}", controllers.GetUserEndpoint).Methods("GET")

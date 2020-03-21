@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/joho/godotenv"
 
 	"mrkt/db"
 	"mrkt/router"
@@ -12,7 +15,10 @@ import (
 const PORT = 12345
 
 func main() {
-	fmt.Printf("Application listening on port %d\n", PORT)
+	if err := godotenv.Load(); err != nil {
+		log.Fatalln("No .env file found")
+	}
 	db.Connect()
+	fmt.Printf("Application listening on port %d\n", PORT)
 	http.ListenAndServe(fmt.Sprintf(":%d", PORT), router.GetRouter())
 }

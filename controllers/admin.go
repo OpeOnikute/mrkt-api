@@ -2,11 +2,22 @@ package controllers
 
 import (
 	"encoding/json"
+	"mrkt/constants"
 	"mrkt/handlers"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
+
+type loginBody struct {
+	Email    string
+	Password string
+}
+
+type loginResponse struct {
+	Message string      `json:"message" bson:"message"`
+	Data    interface{} `json:"data" bson:"data"`
+}
 
 // CreateUserEndpoint ...
 func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
@@ -21,6 +32,55 @@ func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	}
 	json.NewEncoder(response).Encode(result)
 
+}
+
+// AdminLoginEndpoint ...
+func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("content-type", "application/json")
+
+	var body loginBody
+
+	err := json.NewDecoder(request.Body).Decode(&body)
+
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+
+	user, err := handlers.GetUserByEmail(body.Email, true)
+
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+
+	// compare passwords
+	if correct := handlers.ComparePasswords(user.Password, []byte(body.Password)); correct != true {
+		response.WriteHeader(http.StatusUnauthorized)
+		response.Write([]byte(`{ "message": "` + constants.IncorrectCredentials + `" }`))
+		return
+	}
+
+	// generate jwt token and send
+	token, err := handlers.GenerateJWTToken(user)
+
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+
+	data := make(map[string]string)
+	data["token"] = token
+
+	res := &loginResponse{
+		Message: "Login successful.",
+		Data:    data,
+	}
+
+	json.NewEncoder(response).Encode(res)
 }
 
 // UpdateUserEndpoint ...
