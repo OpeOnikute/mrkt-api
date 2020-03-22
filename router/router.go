@@ -2,12 +2,15 @@ package router
 
 import (
 	"mrkt/controllers"
+	"net/http"
+	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 // GetRouter exposes the main router
-func GetRouter() *mux.Router {
+func GetRouter() http.Handler {
 	router := mux.NewRouter()
 
 	entryrouter := router.PathPrefix("/entry").Subrouter()
@@ -27,5 +30,5 @@ func GetRouter() *mux.Router {
 	adminrouter.HandleFunc("/{id}", controllers.GetUserEndpoint).Methods("GET")
 	adminrouter.HandleFunc("/{id}", controllers.DeleteUserEndpoint).Methods("DELETE")
 
-	return router
+	return handlers.LoggingHandler(os.Stdout, router)
 }
