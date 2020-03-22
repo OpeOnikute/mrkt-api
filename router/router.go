@@ -18,6 +18,8 @@ func GetRouter() *mux.Router {
 	entryrouter.HandleFunc("/{id}", controllers.DeleteEntryEndpoint).Methods("DELETE")
 
 	adminrouter := router.PathPrefix("/admin").Subrouter()
+	adminrouter.Use(controllers.AdminAuthenticationMiddleware)
+
 	adminrouter.HandleFunc("", controllers.CreateUserEndpoint).Methods("POST")
 	adminrouter.HandleFunc("/login", controllers.AdminLoginEndpoint).Methods("POST")
 	adminrouter.HandleFunc("/{id}", controllers.UpdateUserEndpoint).Methods("PUT")

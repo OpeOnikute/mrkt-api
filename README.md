@@ -7,7 +7,6 @@ This is a rewrite of [this application](https://github.com/OpeOnikute/safety-ale
 - Mongo driver: before find/find all, add { status: "enabled" }
 - Forgot Password
 - Better response than "mongo: no documents in result"
-- Token auth middleware
 
 # Links
 - JWT - https://www.sohamkamani.com/golang/2019-01-01-jwt-authentication/

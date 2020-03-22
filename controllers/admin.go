@@ -177,3 +177,50 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	}
 	json.NewEncoder(response).Encode(user)
 }
+
+// AdminAuthenticationMiddleware is a Middleware function, which will be called for each request
+func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
+
+	unauthenticated := []string{"/admin/login"}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// ensure we are not validating an unauthenticated route
+		url := r.URL.String()
+		if yes := contains(unauthenticated, url); yes {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		token := r.Header.Get("Authorization")
+
+		if token == "" {
+			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied)
+			return
+		}
+
+		if valid := handlers.VerifyJWTToken(token); valid {
+			// Pass down the request to the next middleware (or final handler)
+			next.ServeHTTP(w, r)
+		} else {
+			// Write an error and stop the handler chain
+			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied)
+		}
+	})
+}
+
+// SendErrorResponse ...
+func SendErrorResponse(r http.ResponseWriter, status int, message string) {
+	r.Header().Set("content-type", "application/json")
+	r.WriteHeader(http.StatusInternalServerError)
+	r.Write([]byte(`{ "message": "` + constants.AccessDenied + `" }`))
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
+}
