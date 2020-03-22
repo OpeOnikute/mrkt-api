@@ -2,10 +2,9 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
+	"mrkt/constants"
 	"mrkt/db"
 	"mrkt/models"
 	"os"
@@ -38,23 +37,16 @@ func (e *ResError) Error() string {
 }
 
 // CreateUser allows you create different types of users by initializing outside the function
-func CreateUser(params io.Reader, isAdmin bool) (*mongo.InsertOneResult, error) {
-	user := models.GetDefaultUser()
-	err := json.NewDecoder(params).Decode(&user)
-	if err != nil {
-		return nil, err
-	}
-
+func CreateUser(user *models.User) (*mongo.InsertOneResult, error) {
 	// confirm the user doesn't already exist
-	if existingUser, _ := GetUserByEmail(user.Email, isAdmin); existingUser.Email == user.Email {
+	if existingUser, _ := GetUserByEmail(user.Email, user.IsAdmin); existingUser.Email == user.Email {
 		var newErr ResError
-		newErr.Msg = "This user already exists"
+		newErr.Msg = constants.UserExists
 		return nil, &newErr
 	}
 
 	hash, _ := generatePasswordHash(user.Password)
 
-	user.IsAdmin = isAdmin
 	user.Password = hash
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

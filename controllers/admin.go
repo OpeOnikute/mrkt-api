@@ -4,10 +4,17 @@ import (
 	"encoding/json"
 	"mrkt/constants"
 	"mrkt/handlers"
+	"mrkt/models"
 	"net/http"
 
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
 	"github.com/gorilla/mux"
+
+	validator "gopkg.in/go-playground/validator.v9"
 )
+
+var defaultRes = make(map[string]interface{})
 
 type loginBody struct {
 	Email    string
@@ -21,11 +28,25 @@ type loginResponse struct {
 
 // CreateUserEndpoint ...
 func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
-	isAdmin := request.URL.Query().Get("isAdmin") == "true"
-	result, err := handlers.CreateUser(request.Body, isAdmin)
+
+	user := models.GetDefaultUser()
+	err := json.NewDecoder(request.Body).Decode(&user)
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	user.IsAdmin = request.URL.Query().Get("isAdmin") == "true"
+
+	if ok, errors := validateRequest(user); !ok {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParams, errors)
+		return
+	}
+
+	result, err := handlers.CreateUser(user)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
@@ -39,20 +60,20 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	err := json.NewDecoder(request.Body).Decode(&body)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusBadRequest, err.Error())
+		SendErrorResponse(response, http.StatusBadRequest, err.Error(), defaultRes)
 		return
 	}
 
 	user, err := handlers.GetUserByEmail(body.Email, true)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
 	// compare passwords
 	if correct := handlers.ComparePasswords(user.Password, []byte(body.Password)); correct != true {
-		SendErrorResponse(response, http.StatusUnauthorized, constants.IncorrectCredentials)
+		SendErrorResponse(response, http.StatusUnauthorized, constants.IncorrectCredentials, defaultRes)
 		return
 	}
 
@@ -60,7 +81,7 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	token, err := handlers.GenerateJWTToken(user)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
@@ -84,21 +105,21 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
 	err = json.NewDecoder(request.Body).Decode(&user)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
 	// update model
 	result, err := handlers.UpdateUserByID(params["id"], user)
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
@@ -114,14 +135,14 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
 	// update model
 	result, err := handlers.DeleteUserByID(user)
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
@@ -135,7 +156,7 @@ func GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
 	results, err := handlers.GetAllUsers(isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 	SendSuccessResponse(response, results)
@@ -149,7 +170,7 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 	SendSuccessResponse(response, user)
@@ -172,7 +193,7 @@ func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 		token := r.Header.Get("Authorization")
 
 		if token == "" {
-			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied)
+			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied, defaultRes)
 			return
 		}
 
@@ -181,16 +202,24 @@ func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		} else {
 			// Write an error and stop the handler chain
-			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied)
+			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied, defaultRes)
 		}
 	})
 }
 
 // SendErrorResponse ...
-func SendErrorResponse(r http.ResponseWriter, status int, message string) {
+func SendErrorResponse(r http.ResponseWriter, status int, message string, data interface{}) {
+
+	res := make(map[string]interface{})
+	res["status"] = "error"
+	res["message"] = message
+	res["data"] = data
+
+	jsonRes, _ := json.Marshal(res)
+
 	r.Header().Set("content-type", "application/json")
 	r.WriteHeader(status)
-	r.Write([]byte(`{ "message": "` + message + `" }`))
+	r.Write([]byte(jsonRes))
 
 	if status == http.StatusInternalServerError {
 		handlers.ErrorLogger.Error(message)
@@ -199,8 +228,49 @@ func SendErrorResponse(r http.ResponseWriter, status int, message string) {
 
 // SendSuccessResponse ...
 func SendSuccessResponse(r http.ResponseWriter, result interface{}) {
+
+	res := make(map[string]interface{})
+	res["status"] = "success"
+	res["data"] = result
+
 	r.Header().Set("content-type", "application/json")
-	json.NewEncoder(r).Encode(result)
+	json.NewEncoder(r).Encode(res)
+}
+
+func validateRequest(b interface{}) (bool, map[string]interface{}) {
+
+	// init validator
+	v := validator.New()
+
+	// register translations
+	translator := en.New()
+	uni := ut.New(translator, translator)
+
+	trans, _ := uni.GetTranslator("en")
+
+	_ = v.RegisterTranslation("email", trans, func(ut ut.Translator) error {
+		return ut.Add("email", "{0} must be a valid email", true) // see universal-translator for details
+	}, func(ut ut.Translator, fe validator.FieldError) string {
+		t, _ := ut.T("email", fe.Field())
+		return t
+	})
+
+	// prepare response
+	ok := true
+	errors := make(map[string]interface{})
+
+	// parse validation
+	err := v.Struct(b)
+
+	if err != nil {
+		ok = false
+		for _, e := range err.(validator.ValidationErrors) {
+			tg := e.Tag()
+			errors[tg] = e.Translate(trans)
+		}
+	}
+
+	return ok, errors
 }
 
 func contains(arr []string, str string) bool {
