@@ -1,2 +1,6 @@
+# Log files
+logs/*
+!logs/.gitkeep
+
 data
 .env

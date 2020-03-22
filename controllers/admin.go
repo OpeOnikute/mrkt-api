@@ -189,8 +189,12 @@ func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 // SendErrorResponse ...
 func SendErrorResponse(r http.ResponseWriter, status int, message string) {
 	r.Header().Set("content-type", "application/json")
-	r.WriteHeader(http.StatusInternalServerError)
+	r.WriteHeader(status)
 	r.Write([]byte(`{ "message": "` + message + `" }`))
+
+	if status == http.StatusInternalServerError {
+		handlers.ErrorLogger.Error(message)
+	}
 }
 
 // SendSuccessResponse ...

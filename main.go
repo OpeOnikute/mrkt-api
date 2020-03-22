@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"mrkt/db"
+	"mrkt/handlers"
 	"mrkt/router"
 )
 
@@ -19,6 +20,8 @@ func main() {
 		log.Fatalln("No .env file found")
 	}
 	db.Connect()
+	handlers.InitLogger()
+	defer handlers.CloseLoggers()
 	fmt.Printf("Application listening on port %d\n", PORT)
 	http.ListenAndServe(fmt.Sprintf(":%d", PORT), router.GetRouter())
 }
