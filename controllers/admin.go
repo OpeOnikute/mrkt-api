@@ -21,45 +21,38 @@ type loginResponse struct {
 
 // CreateUserEndpoint ...
 func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
-
 	isAdmin := request.URL.Query().Get("isAdmin") == "true"
 	result, err := handlers.CreateUser(request.Body, isAdmin)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
+		return
 	}
-	json.NewEncoder(response).Encode(result)
 
+	SendSuccessResponse(response, result)
 }
 
 // AdminLoginEndpoint ...
 func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
-
 	var body loginBody
 
 	err := json.NewDecoder(request.Body).Decode(&body)
 
 	if err != nil {
-		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := handlers.GetUserByEmail(body.Email, true)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// compare passwords
 	if correct := handlers.ComparePasswords(user.Password, []byte(body.Password)); correct != true {
-		response.WriteHeader(http.StatusUnauthorized)
-		response.Write([]byte(`{ "message": "` + constants.IncorrectCredentials + `" }`))
+		SendErrorResponse(response, http.StatusUnauthorized, constants.IncorrectCredentials)
 		return
 	}
 
@@ -67,8 +60,7 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	token, err := handlers.GenerateJWTToken(user)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -80,13 +72,11 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 		Data:    data,
 	}
 
-	json.NewEncoder(response).Encode(res)
+	SendSuccessResponse(response, res)
 }
 
 // UpdateUserEndpoint ...
 func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
-	// set response headers
-	response.Header().Set("content-type", "application/json")
 	// get ID
 	params := mux.Vars(request)
 
@@ -94,35 +84,29 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	err = json.NewDecoder(request.Body).Decode(&user)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// update model
 	result, err := handlers.UpdateUserByID(params["id"], user)
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	// send reponse
-	json.NewEncoder(response).Encode(result)
+	SendSuccessResponse(response, result)
 }
 
 // DeleteUserEndpoint ...
 func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
-	// set response headers
-	response.Header().Set("content-type", "application/json")
 	// get ID
 	params := mux.Vars(request)
 
@@ -130,52 +114,45 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// update model
 	result, err := handlers.DeleteUserByID(user)
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// send reponse
-	json.NewEncoder(response).Encode(result)
+	SendSuccessResponse(response, result)
 }
 
 // GetUsersEndpoint ...
 func GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
-
 	isAdmin := request.URL.Query().Get("isAdmin") == "true"
 	results, err := handlers.GetAllUsers(isAdmin)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
-	json.NewEncoder(response).Encode(results)
+	SendSuccessResponse(response, results)
 }
 
 // GetUserEndpoint ...
 func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
 	params := mux.Vars(request)
 
 	isAdmin := request.URL.Query().Get("isAdmin") == "true"
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error())
 		return
 	}
-	json.NewEncoder(response).Encode(user)
+	SendSuccessResponse(response, user)
 }
 
 // AdminAuthenticationMiddleware is a Middleware function, which will be called for each request
@@ -213,7 +190,13 @@ func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 func SendErrorResponse(r http.ResponseWriter, status int, message string) {
 	r.Header().Set("content-type", "application/json")
 	r.WriteHeader(http.StatusInternalServerError)
-	r.Write([]byte(`{ "message": "` + constants.AccessDenied + `" }`))
+	r.Write([]byte(`{ "message": "` + message + `" }`))
+}
+
+// SendSuccessResponse ...
+func SendSuccessResponse(r http.ResponseWriter, result interface{}) {
+	r.Header().Set("content-type", "application/json")
+	json.NewEncoder(r).Encode(result)
 }
 
 func contains(arr []string, str string) bool {
