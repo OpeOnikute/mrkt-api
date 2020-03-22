@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,7 +24,11 @@ var Collections dBCollection
 
 // Connect ...
 func Connect() {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://root:root@localhost:27017"))
+
+	var mongoURL = os.Getenv("MONGO_URL")
+	var mongoDB = os.Getenv("MONGO_DATABASE")
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURL))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +39,7 @@ func Connect() {
 		log.Fatal(err)
 	}
 
-	Database = client.Database("mrkt")
+	Database = client.Database(mongoDB)
 
 	Collections.Entries = Database.Collection("entries")
 	Collections.Users = Database.Collection("users")
