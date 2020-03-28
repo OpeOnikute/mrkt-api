@@ -1,12 +1,15 @@
 # Mrkt
 This is a rewrite of [this application](https://github.com/OpeOnikute/safety-alert-api) in Golang. 
 
-### TODO
-- Tests
-- Mongo driver: before find/find all, add { status: "enabled" }
-- Sign up, login, post entries as user (anonymous or actual user id)
-- Forgot Password
-- Better response than "mongo: no documents in result"
+### TODO (Up next)
+- [ ] Sign up, login, post entries as user (anonymous or actual user id)
+- [ ] Alert types (other, potential harm, emergency, accident, fire, robbery) and their priority levels (1, 2, 3, 4, 5)
+- [ ] Meerkat ranking (alpha, beta, pup)
+- [ ] Ranking locations (Safety score)
+- [ ] Tests
+- [ ] Mongo driver: before find/find all, add { status: "enabled" }
+- [ ] Forgot Password
+- [ ] Better response than "mongo: no documents in result"
 
 # Links
 - JWT - https://www.sohamkamani.com/golang/2019-01-01-jwt-authentication/
