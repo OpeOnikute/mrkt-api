@@ -26,8 +26,11 @@ type loginResponse struct {
 	Data    interface{} `json:"data" bson:"data"`
 }
 
+// AdminController ...
+type AdminController struct{}
+
 // CreateUserEndpoint ...
-func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	user := models.GetDefaultUser()
 	err := json.NewDecoder(request.Body).Decode(&user)
@@ -54,7 +57,7 @@ func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // AdminLoginEndpoint ...
-func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	var body loginBody
 
 	err := json.NewDecoder(request.Body).Decode(&body)
@@ -78,7 +81,7 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	}
 
 	// generate jwt token and send
-	token, err := handlers.GenerateJWTToken(user)
+	token, err := handlers.GenerateJWTToken(&user)
 
 	if err != nil {
 		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
@@ -88,16 +91,11 @@ func AdminLoginEndpoint(response http.ResponseWriter, request *http.Request) {
 	data := make(map[string]string)
 	data["token"] = token
 
-	res := &loginResponse{
-		Message: "Login successful.",
-		Data:    data,
-	}
-
-	SendSuccessResponse(response, res)
+	SendSuccessResponse(response, data)
 }
 
 // UpdateUserEndpoint ...
-func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	// get ID
 	params := mux.Vars(request)
 
@@ -127,7 +125,7 @@ func UpdateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // DeleteUserEndpoint ...
-func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	// get ID
 	params := mux.Vars(request)
 
@@ -151,7 +149,7 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // GetUsersEndpoint ...
-func GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
 	isAdmin := request.URL.Query().Get("isAdmin") == "true"
 	results, err := handlers.GetAllUsers(isAdmin)
 
@@ -163,7 +161,7 @@ func GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // GetUserEndpoint ...
-func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c AdminController) GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 
 	isAdmin := request.URL.Query().Get("isAdmin") == "true"
@@ -177,7 +175,7 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // AdminAuthenticationMiddleware is a Middleware function, which will be called for each request
-func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
+func (c AdminController) AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 
 	unauthenticated := []string{"/admin/login"}
 
@@ -197,7 +195,7 @@ func AdminAuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if valid := handlers.VerifyJWTToken(token); valid {
+		if valid := handlers.VerifyJWTToken(token, true); valid {
 			// Pass down the request to the next middleware (or final handler)
 			next.ServeHTTP(w, r)
 		} else {

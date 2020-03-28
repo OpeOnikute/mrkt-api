@@ -19,9 +19,9 @@ import (
 )
 
 type jwtClaim struct {
-	Email     string `json:"email"`
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	IsAdmin  bool   `json:"isAdmin"`
 	jwt.StandardClaims
 }
 
@@ -142,15 +142,15 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 }
 
 // GenerateJWTToken ...
-func GenerateJWTToken(user models.User) (string, error) {
+func GenerateJWTToken(user *models.User) (string, error) {
 
 	// Declare the expiration time of the token
 	expirationTime := time.Now().Add(24 * time.Hour)
 	// Create the JWT claims, which includes the username and expiry time
 	claims := &jwtClaim{
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
+		Email:    user.Email,
+		Username: user.Username,
+		IsAdmin:  user.IsAdmin,
 		StandardClaims: jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
 			ExpiresAt: expirationTime.Unix(),
@@ -164,7 +164,7 @@ func GenerateJWTToken(user models.User) (string, error) {
 }
 
 // VerifyJWTToken ...
-func VerifyJWTToken(tknStr string) bool {
+func VerifyJWTToken(tknStr string, isAdmin bool) bool {
 
 	// remove the bearer part
 	tknStr = strings.Replace(tknStr, "Bearer ", "", -1)
@@ -184,6 +184,9 @@ func VerifyJWTToken(tknStr string) bool {
 		res = false
 	}
 	if !tkn.Valid {
+		res = false
+	}
+	if claims.IsAdmin != isAdmin {
 		res = false
 	}
 	return res

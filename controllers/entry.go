@@ -11,8 +11,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type EntriesController struct{}
+
 // AddEntryEndpoint ...
-func AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c EntriesController) AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	entry := models.GetDefaultEntry()
 
@@ -37,7 +39,7 @@ func AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // UpdateEntryEndpoint ...
-func UpdateEntryEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c EntriesController) UpdateEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	// set response headers
 	response.Header().Set("content-type", "application/json")
 	// get ID
@@ -71,7 +73,7 @@ func UpdateEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // DeleteEntryEndpoint ...
-func DeleteEntryEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c EntriesController) DeleteEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	// set response headers
 	response.Header().Set("content-type", "application/json")
 	// get ID
@@ -97,7 +99,7 @@ func DeleteEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // GetEntriesEndpoint ...
-func GetEntriesEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c EntriesController) GetEntriesEndpoint(response http.ResponseWriter, request *http.Request) {
 	results, err := handlers.GetAllEntries()
 	if err != nil {
 		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
@@ -107,7 +109,7 @@ func GetEntriesEndpoint(response http.ResponseWriter, request *http.Request) {
 }
 
 // GetEntryEndpoint ...
-func GetEntryEndpoint(response http.ResponseWriter, request *http.Request) {
+func (c EntriesController) GetEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("content-type", "application/json")
 	params := mux.Vars(request)
 	entry, err := handlers.GetEntryByID(params["id"])

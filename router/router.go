@@ -9,26 +9,34 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var adminController controllers.AdminController
+var entriesController controllers.EntriesController
+var userController controllers.UsersController
+
 // GetRouter exposes the main router
 func GetRouter() http.Handler {
 	router := mux.NewRouter()
 
 	entryrouter := router.PathPrefix("/entry").Subrouter()
-	entryrouter.HandleFunc("", controllers.AddEntryEndpoint).Methods("POST")
-	entryrouter.HandleFunc("/{id}", controllers.UpdateEntryEndpoint).Methods("PUT")
-	entryrouter.HandleFunc("", controllers.GetEntriesEndpoint).Methods("GET")
-	entryrouter.HandleFunc("/{id}", controllers.GetEntryEndpoint).Methods("GET")
-	entryrouter.HandleFunc("/{id}", controllers.DeleteEntryEndpoint).Methods("DELETE")
+	entryrouter.HandleFunc("", entriesController.AddEntryEndpoint).Methods("POST")
+	entryrouter.HandleFunc("/{id}", entriesController.UpdateEntryEndpoint).Methods("PUT")
+	entryrouter.HandleFunc("", entriesController.GetEntriesEndpoint).Methods("GET")
+	entryrouter.HandleFunc("/{id}", entriesController.GetEntryEndpoint).Methods("GET")
+	entryrouter.HandleFunc("/{id}", entriesController.DeleteEntryEndpoint).Methods("DELETE")
+
+	userrouter := router.PathPrefix("/users").Subrouter()
+	userrouter.HandleFunc("/sign-up", userController.SignupEndpoint).Methods("POST")
+	userrouter.HandleFunc("/login", userController.LoginEndpoint).Methods("POST")
 
 	adminrouter := router.PathPrefix("/admin").Subrouter()
-	adminrouter.Use(controllers.AdminAuthenticationMiddleware)
+	adminrouter.Use(adminController.AdminAuthenticationMiddleware)
 
-	adminrouter.HandleFunc("", controllers.CreateUserEndpoint).Methods("POST")
-	adminrouter.HandleFunc("/login", controllers.AdminLoginEndpoint).Methods("POST")
-	adminrouter.HandleFunc("/{id}", controllers.UpdateUserEndpoint).Methods("PUT")
-	adminrouter.HandleFunc("", controllers.GetUsersEndpoint).Methods("GET")
-	adminrouter.HandleFunc("/{id}", controllers.GetUserEndpoint).Methods("GET")
-	adminrouter.HandleFunc("/{id}", controllers.DeleteUserEndpoint).Methods("DELETE")
+	adminrouter.HandleFunc("", adminController.CreateUserEndpoint).Methods("POST")
+	adminrouter.HandleFunc("/login", adminController.AdminLoginEndpoint).Methods("POST")
+	adminrouter.HandleFunc("/{id}", adminController.UpdateUserEndpoint).Methods("PUT")
+	adminrouter.HandleFunc("", adminController.GetUsersEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/{id}", adminController.GetUserEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/{id}", adminController.DeleteUserEndpoint).Methods("DELETE")
 
 	return handlers.LoggingHandler(os.Stdout, router)
 }
