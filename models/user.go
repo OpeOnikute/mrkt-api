@@ -23,6 +23,7 @@ type User struct {
 // GetDefaultUser sets the defaults for users
 func GetDefaultUser() *User {
 	return &User{
+		ID:      primitive.NewObjectID(),
 		Status:  "enabled",
 		Created: time.Now(),
 		Updated: time.Now(),

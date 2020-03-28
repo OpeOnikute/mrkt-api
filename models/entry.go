@@ -3,25 +3,28 @@ package models
 import (
 	"time"
 
+	geo "github.com/codingsince1985/geo-golang"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Entry struct {
 	ID          primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Title       string             `json:"title,omitempty" bson:"title,omitempty"`
-	Description string             `json:"description,omitempty" bson:"description,omitempty"`
-	UploadedBy  string             `json:"uploadedBy,omitempty" bson:"uploadedBy,omitempty"`
-	Content     string             `json:"content,omitempty" bson:"content,omitempty"`
-	ContentType string             `json:"contentType,omitempty" bson:"contentType,omitempty"`
-	Location    Location           `json:"location,omitempty" bson:"location,omitempty"`
-	Status      string             `json:"status,omitempty" bson:"status,omitempty"`
-	Created     time.Time          `json:"created,omitempty" bson:"created,omitempty"`
-	Updated     time.Time          `json:"updated,omitempty" bson:"updated,omitempty"`
+	Title       string             `json:"title" bson:"title" validate:"required"`
+	Description string             `json:"description" bson:"description" validate:"required"`
+	UploadedBy  string             `json:"uploadedBy" bson:"uploadedBy" validate:"required"`
+	ContentURL  string             `json:"contentURL" bson:"contentURL" validate:"required"`
+	ContentType string             `json:"contentType" bson:"contentType" validate:"required"`
+	Location    Location           `json:"location" bson:"location" validate:"required"`
+	Address     *geo.Address       `json:"address" bson:"address"`
+	Status      string             `json:"status" bson:"status"`
+	Created     time.Time          `json:"created" bson:"created"`
+	Updated     time.Time          `json:"updated" bson:"updated"`
 }
 
 type Location struct {
-	Type        string `json:"type,omitempty" bson:"type,omitempty"`
-	Coordinates [2]int `json:"coordinates,omitempty" bson:"coordinates,omitempty"`
+	Type        string     `json:"type" bson:"type"`
+	Coordinates [2]float64 `json:"coordinates" bson:"coordinates"`
 }
 
 // GetDefaultEntry sets the defaults for entries
@@ -30,6 +33,7 @@ func GetDefaultEntry() *Entry {
 		Type: "point",
 	}
 	return &Entry{
+		ID:          primitive.NewObjectID(),
 		Location:    defaultLocation,
 		ContentType: "image",
 		Status:      "enabled",

@@ -4,6 +4,7 @@ This is a rewrite of [this application](https://github.com/OpeOnikute/safety-ale
 ### TODO
 - Tests
 - Mongo driver: before find/find all, add { status: "enabled" }
+- Sign up, login, post entries as user (anonymous or actual user id)
 - Forgot Password
 - Better response than "mongo: no documents in result"
 

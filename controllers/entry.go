@@ -2,7 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"mrkt/constants"
 	"mrkt/handlers"
+	"mrkt/models"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,13 +13,27 @@ import (
 
 // AddEntryEndpoint ...
 func AddEntryEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
-	result, err := handlers.CreateEntry(request.Body)
+
+	entry := models.GetDefaultEntry()
+
+	err := json.NewDecoder(request.Body).Decode(&entry)
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusBadRequest, err.Error(), defaultRes)
+		return
 	}
-	json.NewEncoder(response).Encode(result)
+
+	if ok, errors := validateRequest(entry); !ok {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParams, errors)
+		return
+	}
+
+	fmt.Println(entry)
+
+	result, err := handlers.CreateEntry(entry)
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+	}
+	SendSuccessResponse(response, result)
 }
 
 // UpdateEntryEndpoint ...
@@ -81,14 +98,12 @@ func DeleteEntryEndpoint(response http.ResponseWriter, request *http.Request) {
 
 // GetEntriesEndpoint ...
 func GetEntriesEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
 	results, err := handlers.GetAllEntries()
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
-	json.NewEncoder(response).Encode(results)
+	SendSuccessResponse(response, results)
 }
 
 // GetEntryEndpoint ...
