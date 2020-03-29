@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 
 	validator "gopkg.in/go-playground/validator.v9"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var defaultRes = make(map[string]interface{})
@@ -26,6 +27,8 @@ type loginResponse struct {
 	Message string      `json:"message" bson:"message"`
 	Data    interface{} `json:"data" bson:"data"`
 }
+
+var alertTypeHandler handlers.AlertTypeHandler
 
 // AdminController ...
 type AdminController struct{}
@@ -173,6 +176,106 @@ func (c AdminController) GetUserEndpoint(response http.ResponseWriter, request *
 		return
 	}
 	SendSuccessResponse(response, user)
+}
+
+// CreateAlertTypeEndpoint ...
+func (c AdminController) CreateAlertTypeEndpoint(response http.ResponseWriter, request *http.Request) {
+	alertType := models.AlertType{}
+
+	err := json.NewDecoder(request.Body).Decode(&alertType)
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	if ok, errors := validateRequest(alertType); !ok {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParams, errors)
+		return
+	}
+
+	result, err := alertTypeHandler.CreateAlertType(alertType)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	SendSuccessResponse(response, result)
+}
+
+// GetAlertTypesEndpoint ...
+func (c AdminController) GetAlertTypesEndpoint(response http.ResponseWriter, request *http.Request) {
+	query := bson.M{}
+
+	nameQuery := request.URL.Query().Get("name")
+
+	if nameQuery != "" {
+		query["name"] = nameQuery
+	}
+
+	results, err := alertTypeHandler.GetMultiple(query)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+	SendSuccessResponse(response, results)
+}
+
+// GetAlertTypeEndpoint ...
+func (c AdminController) GetAlertTypeEndpoint(response http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request)
+	entry, err := alertTypeHandler.FindByID(params["id"])
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+	SendSuccessResponse(response, entry)
+}
+
+// UpdateAlertTypeEndpoint ...
+func (c AdminController) UpdateAlertTypeEndpoint(response http.ResponseWriter, request *http.Request) {
+	// get ID
+	params := mux.Vars(request)
+	// get alert type
+	alertType, err := alertTypeHandler.FindByID(params["id"])
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	if json.NewDecoder(request.Body).Decode(&alertType); err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	if ok, errors := validateRequest(alertType); !ok {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParams, errors)
+		return
+	}
+
+	result, err := alertTypeHandler.UpdateByID(params["id"], alertType)
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	SendSuccessResponse(response, result)
+}
+
+// DeleteAlertTypeEndpoint ...
+func (c AdminController) DeleteAlertTypeEndpoint(response http.ResponseWriter, request *http.Request) {
+	// get ID
+	params := mux.Vars(request)
+	result, err := alertTypeHandler.DeleteByID(params["id"])
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	// send reponse
+	SendSuccessResponse(response, result)
 }
 
 // AdminAuthenticationMiddleware is a Middleware function, which will be called for each request

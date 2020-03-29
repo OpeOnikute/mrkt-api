@@ -38,10 +38,15 @@ func GetRouter() http.Handler {
 
 	adminrouter.HandleFunc("", adminController.CreateUserEndpoint).Methods("POST")
 	adminrouter.HandleFunc("/login", adminController.AdminLoginEndpoint).Methods("POST")
-	adminrouter.HandleFunc("/{id}", adminController.UpdateUserEndpoint).Methods("PUT")
-	adminrouter.HandleFunc("", adminController.GetUsersEndpoint).Methods("GET")
-	adminrouter.HandleFunc("/{id}", adminController.GetUserEndpoint).Methods("GET")
-	adminrouter.HandleFunc("/{id}", adminController.DeleteUserEndpoint).Methods("DELETE")
+	adminrouter.HandleFunc("/users/{id}", adminController.UpdateUserEndpoint).Methods("PUT")
+	adminrouter.HandleFunc("/users", adminController.GetUsersEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/users/{id}", adminController.GetUserEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/users/{id}", adminController.DeleteUserEndpoint).Methods("DELETE")
+	adminrouter.HandleFunc("/alert-type", adminController.CreateAlertTypeEndpoint).Methods("POST")
+	adminrouter.HandleFunc("/alert-type/{id}", adminController.UpdateAlertTypeEndpoint).Methods("PUT")
+	adminrouter.HandleFunc("/alert-type", adminController.GetAlertTypesEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/alert-type/{id}", adminController.GetAlertTypeEndpoint).Methods("GET")
+	adminrouter.HandleFunc("/alert-type/{id}", adminController.DeleteAlertTypeEndpoint).Methods("DELETE")
 
 	return handlers.LoggingHandler(os.Stdout, router)
 }

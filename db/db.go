@@ -15,8 +15,9 @@ var Database *mongo.Database
 
 // DBCollection ...
 type dBCollection struct {
-	Entries *mongo.Collection
-	Users   *mongo.Collection
+	Entries    *mongo.Collection
+	Users      *mongo.Collection
+	AlertTypes *mongo.Collection
 }
 
 // Collections ...
@@ -42,5 +43,6 @@ func Connect() {
 	Database = client.Database(mongoDB)
 
 	Collections.Entries = Database.Collection("entries")
+	Collections.AlertTypes = Database.Collection("alertTypes")
 	Collections.Users = Database.Collection("users")
 }

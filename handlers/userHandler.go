@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"mrkt/constants"
 	"mrkt/db"
@@ -27,20 +26,11 @@ type JwtClaim struct {
 
 var jwtKey = []byte(os.Getenv("JWT_KEY"))
 
-// ResError ...
-type ResError struct {
-	Msg string
-}
-
-func (e *ResError) Error() string {
-	return fmt.Sprintf("%s", e.Msg)
-}
-
 // CreateUser allows you create different types of users by initializing outside the function
 func CreateUser(user *models.User) (*mongo.InsertOneResult, error) {
 	// confirm the user doesn't already exist
 	if existingUser, _ := GetUserByEmail(user.Email, user.IsAdmin); existingUser.Email == user.Email {
-		var newErr ResError
+		var newErr constants.CustomError
 		newErr.Msg = constants.UserExists
 		return nil, &newErr
 	}
