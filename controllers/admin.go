@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"mrkt/constants"
 	"mrkt/handlers"
@@ -195,9 +196,10 @@ func (c AdminController) AdminAuthenticationMiddleware(next http.Handler) http.H
 			return
 		}
 
-		if valid := handlers.VerifyJWTToken(token, true); valid {
+		if valid, claim := handlers.VerifyJWTToken(token, true); valid {
 			// Pass down the request to the next middleware (or final handler)
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "AdminID", claim.UserID) // nolint
+			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			// Write an error and stop the handler chain
 			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied, defaultRes)

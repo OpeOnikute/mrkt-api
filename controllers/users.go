@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"mrkt/constants"
 	"mrkt/handlers"
@@ -107,9 +108,10 @@ func (c UsersController) UserAuthenticationMiddleware(next http.Handler) http.Ha
 			return
 		}
 
-		if valid := handlers.VerifyJWTToken(token, false); valid {
+		if valid, claim := handlers.VerifyJWTToken(token, false); valid {
 			// Pass down the request to the next middleware (or final handler)
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "UserID", claim.UserID) // nolint
+			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			// Write an error and stop the handler chain
 			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied, defaultRes)

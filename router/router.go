@@ -25,8 +25,11 @@ func GetRouter() http.Handler {
 	entryrouter.HandleFunc("/{id}", entriesController.DeleteEntryEndpoint).Methods("DELETE")
 
 	userrouter := router.PathPrefix("/users").Subrouter()
+	userrouter.Use(userController.UserAuthenticationMiddleware)
+
 	userrouter.HandleFunc("/sign-up", userController.SignupEndpoint).Methods("POST")
 	userrouter.HandleFunc("/login", userController.LoginEndpoint).Methods("POST")
+	userrouter.HandleFunc("/entry", entriesController.AddEntryEndpoint).Methods("POST")
 
 	adminrouter := router.PathPrefix("/admin").Subrouter()
 	adminrouter.Use(adminController.AdminAuthenticationMiddleware)

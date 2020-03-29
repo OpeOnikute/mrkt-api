@@ -18,10 +18,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type jwtClaim struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	IsAdmin  bool   `json:"isAdmin"`
+type JwtClaim struct {
+	UserID   primitive.ObjectID `json:"userID"`
+	Username string             `json:"username"`
+	IsAdmin  bool               `json:"isAdmin"`
 	jwt.StandardClaims
 }
 
@@ -147,8 +147,8 @@ func GenerateJWTToken(user *models.User) (string, error) {
 	// Declare the expiration time of the token
 	expirationTime := time.Now().Add(24 * time.Hour)
 	// Create the JWT claims, which includes the username and expiry time
-	claims := &jwtClaim{
-		Email:    user.Email,
+	claims := &JwtClaim{
+		UserID:   user.ID,
 		Username: user.Username,
 		IsAdmin:  user.IsAdmin,
 		StandardClaims: jwt.StandardClaims{
@@ -164,14 +164,14 @@ func GenerateJWTToken(user *models.User) (string, error) {
 }
 
 // VerifyJWTToken ...
-func VerifyJWTToken(tknStr string, isAdmin bool) bool {
+func VerifyJWTToken(tknStr string, isAdmin bool) (bool, *JwtClaim) {
 
 	// remove the bearer part
 	tknStr = strings.Replace(tknStr, "Bearer ", "", -1)
 
 	res := true
 
-	claims := &jwtClaim{}
+	claims := &JwtClaim{}
 
 	// Parse the JWT string and store the result in `claims`.
 	// Note that we are passing the key in this method as well. This method will return an error
@@ -189,5 +189,5 @@ func VerifyJWTToken(tknStr string, isAdmin bool) bool {
 	if claims.IsAdmin != isAdmin {
 		res = false
 	}
-	return res
+	return res, claims
 }

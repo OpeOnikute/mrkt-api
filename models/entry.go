@@ -12,7 +12,7 @@ type Entry struct {
 	ID          primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Title       string             `json:"title" bson:"title" validate:"required"`
 	Description string             `json:"description" bson:"description" validate:"required"`
-	UploadedBy  string             `json:"uploadedBy" bson:"uploadedBy" validate:"required"`
+	UploadedBy  interface{}        `json:"uploadedBy" bson:"uploadedBy"`
 	ContentURL  string             `json:"contentURL" bson:"contentURL" validate:"required"`
 	ContentType string             `json:"contentType" bson:"contentType" validate:"required"`
 	Location    Location           `json:"location" bson:"location" validate:"required"`

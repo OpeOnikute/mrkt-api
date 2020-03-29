@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"mrkt/constants"
 	"mrkt/handlers"
 	"mrkt/models"
@@ -29,7 +28,9 @@ func (c EntriesController) AddEntryEndpoint(response http.ResponseWriter, reques
 		return
 	}
 
-	fmt.Println(entry)
+	if userID := request.Context().Value("UserID"); userID != nil {
+		entry.UploadedBy = userID
+	}
 
 	result, err := handlers.CreateEntry(entry)
 	if err != nil {
