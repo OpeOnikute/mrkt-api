@@ -17,6 +17,7 @@ type Entry struct {
 	ContentType string             `json:"contentType" bson:"contentType" validate:"required"`
 	Location    Location           `json:"location" bson:"location" validate:"required"`
 	Address     *geo.Address       `json:"address" bson:"address"`
+	AlertType   primitive.ObjectID `json:"alerttype" bson:"alerttype"`
 	Status      string             `json:"status" bson:"status"`
 	Created     time.Time          `json:"created" bson:"created"`
 	Updated     time.Time          `json:"updated" bson:"updated"`
