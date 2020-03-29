@@ -80,10 +80,10 @@ func CreateMultipleEntries(entries []models.Entry) (*mongo.InsertManyResult, err
 }
 
 // GetAllEntries gets all entries
-func GetAllEntries() ([]models.Entry, error) {
+func GetAllEntries(query bson.M) ([]models.Entry, error) {
 	// init empty array so we don't send null as json response
 	results := []models.Entry{}
-	cursor, err := db.Collections.Entries.Find(context.Background(), bson.M{})
+	cursor, err := db.Collections.Entries.Find(context.Background(), query)
 	if err != nil {
 		return results, err
 	}

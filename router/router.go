@@ -19,10 +19,8 @@ func GetRouter() http.Handler {
 
 	entryrouter := router.PathPrefix("/entry").Subrouter()
 	entryrouter.HandleFunc("", entriesController.AddEntryEndpoint).Methods("POST")
-	entryrouter.HandleFunc("/{id}", entriesController.UpdateEntryEndpoint).Methods("PUT")
 	entryrouter.HandleFunc("", entriesController.GetEntriesEndpoint).Methods("GET")
 	entryrouter.HandleFunc("/{id}", entriesController.GetEntryEndpoint).Methods("GET")
-	entryrouter.HandleFunc("/{id}", entriesController.DeleteEntryEndpoint).Methods("DELETE")
 
 	userrouter := router.PathPrefix("/users").Subrouter()
 	userrouter.Use(userController.UserAuthenticationMiddleware)
@@ -30,6 +28,10 @@ func GetRouter() http.Handler {
 	userrouter.HandleFunc("/sign-up", userController.SignupEndpoint).Methods("POST")
 	userrouter.HandleFunc("/login", userController.LoginEndpoint).Methods("POST")
 	userrouter.HandleFunc("/entry", entriesController.AddEntryEndpoint).Methods("POST")
+	userrouter.HandleFunc("/entry/{id}", entriesController.UpdateEntryEndpoint).Methods("PUT")
+	userrouter.HandleFunc("/entry", entriesController.GetEntriesEndpoint).Methods("GET")
+	userrouter.HandleFunc("/entry/{id}", entriesController.GetEntryEndpoint).Methods("GET")
+	userrouter.HandleFunc("/entry/{id}", entriesController.DeleteEntryEndpoint).Methods("DELETE")
 
 	adminrouter := router.PathPrefix("/admin").Subrouter()
 	adminrouter.Use(adminController.AdminAuthenticationMiddleware)
