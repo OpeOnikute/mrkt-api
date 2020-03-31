@@ -55,6 +55,16 @@ func GetAllUsers(isAdmin bool) ([]models.User, error) {
 	return results, err
 }
 
+// GetUser exposes a function to retrieve an user using any query
+func GetUser(q bson.M) (models.User, error) {
+	q["status"] = "enabled"
+	var user models.User
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	err := db.Collections.Users.FindOne(ctx, q).Decode(&user)
+	return user, err
+}
+
 // GetUserByID exposes a function to retrieve an user by it's ID
 func GetUserByID(requestID string, isAdmin bool) (models.User, error) {
 	id, _ := primitive.ObjectIDFromHex(requestID)
@@ -151,6 +161,137 @@ func GenerateJWTToken(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Create the JWT string
 	return token.SignedString(jwtKey)
+}
+
+// ComputeHighestAlphaRanking calculates the top alpha using the
+// number of incidents reported. This highest number of incidents
+// reported is then used in the percentile distribution to get
+// the ranks of other users when we compute them.
+// If two users tie, the user is selected at random as we limit
+// the result to one user.
+func ComputeHighestAlphaRanking() {
+
+	results := []bson.M{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	matchStage := bson.M{"$match": bson.M{"status": "enabled"}}
+	lookupStage := bson.M{
+		"$lookup": bson.M{
+			"from": "entries",
+			"let":  bson.M{"user_id": "$_id"},
+			"pipeline": []bson.M{
+				bson.M{
+					"$match": bson.M{
+						"$expr": bson.M{
+							"$eq": []string{"$uploadedBy", "$$user_id"},
+						},
+					},
+				},
+				bson.M{
+					"$match": bson.M{
+						"$expr": bson.M{
+							"$eq": []string{"$status", "enabled"},
+						},
+					},
+				},
+			},
+			"as": "entries",
+		},
+	}
+	unwindStage := bson.M{
+		"$unwind": bson.M{
+			"path":                       "$entries",
+			"preserveNullAndEmptyArrays": false,
+		},
+	}
+	groupStage := bson.M{
+		"$group": bson.M{
+			"_id": "$email",
+			"count": bson.M{
+				"$sum": 1,
+			},
+		},
+	}
+
+	sortStage := bson.M{
+		"$sort": bson.M{
+			"count": -1,
+		},
+	}
+
+	limitStage := bson.M{
+		"$limit": 1,
+	}
+
+	pipeline := []bson.M{matchStage, lookupStage, unwindStage, groupStage, sortStage, limitStage}
+
+	cursor, _ := db.Collections.Users.Aggregate(ctx, pipeline)
+	_ = cursor.All(context.TODO(), &results)
+
+	if len(results) > 0 {
+		topAlpha := results[0]
+		// make type assertion to convert interface to string and int
+		email := topAlpha["_id"].(string)
+		count := topAlpha["count"].(int32)
+		changeTopAlpha(email, count)
+	}
+}
+
+func changeTopAlpha(email string, numIncidents int32) {
+	// find and update the current top alpha to false
+	currentAlpha, err := GetUser(bson.M{"ranking.isTopAlpha": true})
+
+	if (err != nil) && (err != mongo.ErrNoDocuments) {
+		panic(err)
+	}
+
+	// if user the same user isn't the new alpha, commot am
+	if currentAlpha.Email != "" && currentAlpha.Email != email {
+		_, err := removeTopAlpha(currentAlpha)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("Removed old alpha: %s", currentAlpha.Email)
+	}
+
+	newAlpha, err := GetUser(bson.M{"email": email})
+
+	// update this top alpha to true and add number of incidents
+	_, err = addNewAlpha(newAlpha, numIncidents)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("New alpha added: %s", email)
+}
+
+func addNewAlpha(user models.User, numIncidents int32) (*mongo.UpdateResult, error) {
+	user.Ranking.IsTopAlpha = true
+	user.Ranking.NumIncidents = numIncidents
+	user.Ranking.Rank = constants.ALPHA_RANK
+	user.Ranking.LastUpdated = time.Now()
+	stringID := user.ID.Hex()
+	return UpdateUserByID(stringID, user)
+}
+
+func removeTopAlpha(user models.User) (*mongo.UpdateResult, error) {
+	user.Ranking.IsTopAlpha = false
+	stringID := user.ID.Hex()
+	return UpdateUserByID(stringID, user)
+}
+
+// GetUserRanking ...
+func GetUserRanking() {
+	// if the rank has already been calculated today, return it
+	// if not, compute the percentile based on the highest alpha.
+}
+
+// GetAlphaValue fetches the computed value for the highest ranking alpha
+// for the day.
+func GetAlphaValue() {
+	// todo: cache this
+	// get top alpha
+	// return number of incidents
 }
 
 // VerifyJWTToken ...

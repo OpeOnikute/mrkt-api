@@ -41,6 +41,10 @@ To make this more fun, we want to make users see their ranking. They are:
 - With time, the criteria of number of incidents will change e.g. 5 becomes 10, 20 becomes 40 etc. But I believe it's good for now.
 - If/when we add the ability to upvote incidents, this would also factor. e.g. 5 incidents with at least 10 upvotes each etc.
 - We can also determine this dynamically by getting the user with the most incidents reported and then work our way down from there. A MongoDB aggregation that splits users into buckets and then picks out the position of the user in relation to others can be done. But this would mean calculating this all the time, which can be resource intensive. To solve that, we can have a specific time ranks are updated. e.g. 12am every day. Hm.
+- Final solution:
+    1. Get the user with the highest number reported.
+    2. When users need to see their ranks, calculate the distribution percentiles. 0-40%, 40-80%, 80-100%. i.e. four numbers including zero.
+    3. Use their position in the distribution to determine their rank.
 
 ## TODO (Up next)
 - [x] Sign up, login, post entries as user (anonymous or actual user id)

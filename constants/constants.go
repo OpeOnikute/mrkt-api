@@ -9,6 +9,10 @@ var AccessDenied = "You do not have permission to access this resource."
 var InvalidParams = "The data you provided is incorrect."
 var UserExists = "This user already exists"
 
+const ALPHA_RANK = 3
+const BETA_RANK = 2
+const PUP_RANK = 1
+
 var Enabled = "enabled"
 
 // ResourceNotFound ...
