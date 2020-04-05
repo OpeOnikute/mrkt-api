@@ -72,6 +72,18 @@ func GetUserByID(requestID string, isAdmin bool) (models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	err := db.Collections.Users.FindOne(ctx, bson.M{"_id": id, "isAdmin": isAdmin}).Decode(&user)
+
+	ranking, err := getUserRanking(user)
+	if err != nil {
+		return user, err
+	}
+
+	user.Ranking.LastUpdated = ranking.LastUpdated
+	user.Ranking.Rank = ranking.Rank
+
+	// Hide password
+	user.Password = ""
+
 	return user, err
 }
 
@@ -280,10 +292,70 @@ func removeTopAlpha(user models.User) (*mongo.UpdateResult, error) {
 	return UpdateUserByID(stringID, user)
 }
 
-// GetUserRanking ...
-func GetUserRanking() {
+func computeUserRanking(user models.User) (*models.Ranking, error) {
+
+	var rank int
+
+	currentAlpha, err := GetUser(bson.M{"ranking.isTopAlpha": true})
+
+	if err != nil {
+		return &user.Ranking, err
+	}
+
+	// calculate where the user lies in the spectrum
+	entries, err := GetAllEntries(bson.M{"uploadedBy": user.ID, "status": "enabled"})
+
+	if err != nil {
+		return &user.Ranking, err
+	}
+
+	alphaEntries := currentAlpha.Ranking.NumIncidents
+	userEntries := len(entries)
+
+	percentile := (int32(userEntries) / alphaEntries) * 100
+
+	if percentile >= 80 {
+		rank = constants.ALPHA_RANK
+	} else if 40 <= percentile && percentile <= 79 {
+		rank = constants.BETA_RANK
+	} else {
+		rank = constants.PUP_RANK
+	}
+
+	// persist new rank to DB
+	user.Ranking.LastUpdated = time.Now()
+	user.Ranking.Rank = rank
+	stringID := user.ID.Hex()
+
+	if _, err = UpdateUserByID(stringID, user); err != nil {
+		return &user.Ranking, err
+	}
+
+	return &user.Ranking, nil
+}
+
+// getUserRanking ...
+func getUserRanking(user models.User) (*models.Ranking, error) {
+
+	ranking := user.Ranking
+
 	// if the rank has already been calculated today, return it
-	// if not, compute the percentile based on the highest alpha.
+	lastUpdated := ranking.LastUpdated
+
+	// get midnight timestamp
+	now := time.Now()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	if lastUpdated.Before(midnight) {
+		// compute user ranking based on alpha
+		newRanking, err := computeUserRanking(user)
+		if err != nil {
+			return &ranking, err
+		}
+		return newRanking, err
+	}
+
+	return &ranking, nil
 }
 
 // GetAlphaValue fetches the computed value for the highest ranking alpha

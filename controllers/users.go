@@ -7,6 +7,9 @@ import (
 	"mrkt/handlers"
 	"mrkt/models"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // UsersController ...
@@ -83,6 +86,44 @@ func (c UsersController) LoginEndpoint(response http.ResponseWriter, request *ht
 
 	// data := make(map[string]string)
 	// data["token"] = token
+
+	SendSuccessResponse(response, data)
+}
+
+// DashboardEndpoint ...
+func (c UsersController) DashboardEndpoint(response http.ResponseWriter, request *http.Request) {
+
+	userID := request.Context().Value("UserID")
+	if userID == nil {
+		SendErrorResponse(response, http.StatusInternalServerError, "Something went wrong whilst fetching your data. Please try again.", defaultRes)
+		return
+	}
+
+	// convert interface to object id
+	id, ok := userID.(primitive.ObjectID)
+
+	if !ok {
+		SendErrorResponse(response, http.StatusInternalServerError, "Something went wrong whilst fetching your data. Please try again.", defaultRes)
+		return
+	}
+
+	user, err := handlers.GetUserByID(id.Hex(), false)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	entries, err := handlers.GetAllEntries(bson.M{"uploadedBy": id})
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["user"] = user
+	data["entries"] = entries
 
 	SendSuccessResponse(response, data)
 }

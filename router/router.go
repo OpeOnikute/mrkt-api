@@ -27,6 +27,7 @@ func GetRouter() http.Handler {
 
 	userrouter.HandleFunc("/sign-up", userController.SignupEndpoint).Methods("POST")
 	userrouter.HandleFunc("/login", userController.LoginEndpoint).Methods("POST")
+	userrouter.HandleFunc("/dashboard", userController.DashboardEndpoint).Methods("GET")
 	userrouter.HandleFunc("/entry", entriesController.AddEntryEndpoint).Methods("POST")
 	userrouter.HandleFunc("/entry/{id}", entriesController.UpdateEntryEndpoint).Methods("PUT")
 	userrouter.HandleFunc("/entry", entriesController.GetEntriesEndpoint).Methods("GET")

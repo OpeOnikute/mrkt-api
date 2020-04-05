@@ -11,10 +11,10 @@ type User struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Username  string             `json:"username" bson:"username" validate:"required"`
 	Email     string             `json:"email" bson:"email" validate:"required,email"`
-	Password  string             `json:"password" bson:"password" validate:"required"`
+	Password  string             `json:"password,omitempty" bson:"password" validate:"required"`
 	IsAdmin   bool               `json:"isAdmin" bson:"isAdmin"`
 	Ranking   Ranking            `json:"ranking" bson:"ranking"`
-	AdminRole string             `json:"adminRole" bson:"adminRole"` // super, standard
+	AdminRole string             `json:"adminRole,omitempty" bson:"adminRole"` // super, standard
 	Status    string             `json:"status" bson:"status"`
 	Created   time.Time          `json:"created" bson:"created"`
 	Updated   time.Time          `json:"updated" bson:"updated"`
