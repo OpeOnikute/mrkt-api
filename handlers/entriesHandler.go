@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"mrkt/constants"
 	"mrkt/db"
 	"mrkt/models"
 	"os"
@@ -131,6 +132,125 @@ func DeleteEntryByID(entry models.Entry) (*mongo.UpdateResult, error) {
 	defer cancel()
 	result, err := db.Collections.Entries.UpdateOne(ctx, bson.M{"_id": entry.ID}, update)
 	return result, err
+}
+
+// GetLocationRanking houses the core logic to classify how safe a location is.
+func GetLocationRanking(lat, long float64) (models.LocationRanking, error) {
+
+	var result float64
+	var text string
+	var ranking models.LocationRanking
+	var newErr constants.CustomError
+
+	// 5km
+	maxDistance := 5000
+
+	dayAvg := 5
+
+	// get x days ago as date. we only care about incidents reported
+	// up to x days ago.
+	xDaysAgo := time.Now().AddDate(0, 0, -dayAvg)
+
+	// toDate := time.Date(2014, time.November, 5, 0, 0, 0, 0, time.UTC)
+
+	results := []bson.M{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	geoNearStage := bson.M{
+		"$geoNear": bson.M{
+			"near": bson.M{
+				"type":        "Point",
+				"coordinates": []float64{lat, long},
+			},
+			"distanceField": "dist.calculated",
+			"maxDistance":   maxDistance,
+			"query": bson.M{
+				"status":  constants.Enabled,
+				"created": bson.M{"$gte": xDaysAgo},
+			},
+			"includeLocs": "dist.location",
+			"spherical":   false,
+		},
+	}
+
+	lookupStage := bson.M{
+		"$lookup": bson.M{
+			"from":         "alertTypes",
+			"localField":   "alertType",
+			"foreignField": "_id",
+			"as":           "alertType",
+		},
+	}
+	unwindStage := bson.M{
+		"$unwind": bson.M{
+			"path":                       "$alertType",
+			"preserveNullAndEmptyArrays": false,
+		},
+	}
+	matchStage := bson.M{
+		"$match": bson.M{
+			"alertType.level": bson.M{
+				"$gte": 3,
+			},
+		},
+	}
+	groupStage := bson.M{
+		"$group": bson.M{
+			"_id": "",
+			"count": bson.M{
+				"$sum": 1,
+			},
+		},
+	}
+
+	projectStage := bson.M{
+		"$project": bson.M{
+			"_id": 0,
+			"avg": bson.M{
+				"$divide": []interface{}{"$count", dayAvg},
+			},
+			"count": 1,
+		},
+	}
+
+	pipeline := []bson.M{geoNearStage, lookupStage, unwindStage, matchStage, groupStage, projectStage}
+
+	cursor, _ := db.Collections.Entries.Aggregate(ctx, pipeline)
+	_ = cursor.All(context.TODO(), &results)
+
+	// If there are no results, no incident was found. Location is safe.
+	if len(results) <= 0 {
+		ranking.Average = 0
+		ranking.Text = constants.LOCATION_SAFE
+		ranking.NumIncidents = 0
+		newErr.Msg = "Aggregation failed."
+		return ranking, nil
+	}
+
+	result, ok := results[0]["avg"].(float64)
+
+	if !ok {
+		newErr.Msg = "Failed to convert aggregation result to float."
+		return ranking, &newErr
+	}
+
+	if 0 <= result && result <= 0.4 {
+		text = constants.LOCATION_SAFE
+	} else if 0.5 <= result && result <= 0.9 {
+		text = constants.LOCATION_WARNING
+	} else if result >= 1 {
+		text = constants.LOCATION_UNSAFE
+	} else {
+		// handle negative cases
+		text = constants.LOCATION_UNKNOWN
+	}
+
+	ranking.Text = text
+	ranking.Average = result
+	ranking.NumIncidents = results[0]["count"].(int32)
+
+	return ranking, nil
 }
 
 // Seed ...

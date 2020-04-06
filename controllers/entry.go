@@ -6,6 +6,9 @@ import (
 	"mrkt/handlers"
 	"mrkt/models"
 	"net/http"
+	"strconv"
+
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
@@ -27,6 +30,16 @@ func (c EntriesController) AddEntryEndpoint(response http.ResponseWriter, reques
 
 	if ok, errors := validateRequest(entry); !ok {
 		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParams, errors)
+		return
+	}
+
+	// validate incident type
+	if _, err := alertTypeHandler.FindByID(entry.AlertType.Hex()); err != nil {
+		if err == mongo.ErrNoDocuments {
+			SendErrorResponse(response, http.StatusBadRequest, constants.ResourceNotFound("alert type"), defaultRes)
+			return
+		}
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
 		return
 	}
 
@@ -142,7 +155,6 @@ func (c EntriesController) GetEntriesEndpoint(response http.ResponseWriter, requ
 
 // GetEntryEndpoint ...
 func (c EntriesController) GetEntryEndpoint(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
 	params := mux.Vars(request)
 	entry, err := handlers.GetEntryByID(params["id"])
 	if err != nil {
@@ -159,4 +171,34 @@ func (c EntriesController) GetEntryEndpoint(response http.ResponseWriter, reques
 	}
 
 	SendSuccessResponse(response, entry)
+}
+
+// GetLocationRanking ...
+func (c EntriesController) GetLocationRanking(response http.ResponseWriter, request *http.Request) {
+
+	lat := request.URL.Query().Get("lat")
+	lng := request.URL.Query().Get("lng")
+
+	latFloat, err := strconv.ParseFloat(lat, 64)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParam("latitude"), defaultRes)
+		return
+	}
+
+	lngFloat, err := strconv.ParseFloat(lng, 64)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusBadRequest, constants.InvalidParam("longitude"), defaultRes)
+		return
+	}
+
+	result, err := handlers.GetLocationRanking(latFloat, lngFloat)
+
+	if err != nil {
+		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		return
+	}
+
+	SendSuccessResponse(response, result)
 }

@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Database ...
@@ -45,4 +46,12 @@ func Connect() {
 	Collections.Entries = Database.Collection("entries")
 	Collections.AlertTypes = Database.Collection("alertTypes")
 	Collections.Users = Database.Collection("users")
+
+	// Create indexes
+	mod := mongo.IndexModel{
+		Keys: bson.M{
+			"location": "2dsphere", // index in ascending order
+		}, Options: nil,
+	}
+	Collections.Entries.Indexes().CreateOne(ctx, mod)
 }

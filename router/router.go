@@ -22,6 +22,9 @@ func GetRouter() http.Handler {
 	entryrouter.HandleFunc("", entriesController.GetEntriesEndpoint).Methods("GET")
 	entryrouter.HandleFunc("/{id}", entriesController.GetEntryEndpoint).Methods("GET")
 
+	locationrouter := router.PathPrefix("/location").Subrouter()
+	locationrouter.HandleFunc("/safety", entriesController.GetLocationRanking).Methods("GET")
+
 	userrouter := router.PathPrefix("/users").Subrouter()
 	userrouter.Use(userController.UserAuthenticationMiddleware)
 

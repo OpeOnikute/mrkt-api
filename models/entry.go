@@ -17,7 +17,7 @@ type Entry struct {
 	ContentType string             `json:"contentType" bson:"contentType" validate:"required"`
 	Location    Location           `json:"location" bson:"location" validate:"required"`
 	Address     *geo.Address       `json:"address" bson:"address"`
-	AlertType   primitive.ObjectID `json:"alerttype" bson:"alerttype"`
+	AlertType   primitive.ObjectID `json:"alertType" bson:"alertType"`
 	Status      string             `json:"status" bson:"status"`
 	Created     time.Time          `json:"created" bson:"created"`
 	Updated     time.Time          `json:"updated" bson:"updated"`
@@ -28,10 +28,17 @@ type Location struct {
 	Coordinates [2]float64 `json:"coordinates" bson:"coordinates"`
 }
 
+// LocationRanking ...
+type LocationRanking struct {
+	Average      float64 `json:"average" bson:"average"`
+	Text         string  `json:"text" bson:"text"`
+	NumIncidents int32   `json:"numIncidents" bson:"numIncidents"`
+}
+
 // GetDefaultEntry sets the defaults for entries
 func GetDefaultEntry() *Entry {
 	defaultLocation := Location{
-		Type: "point",
+		Type: "Point",
 	}
 	return &Entry{
 		ID:          primitive.NewObjectID(),

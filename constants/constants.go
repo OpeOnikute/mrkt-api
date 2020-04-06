@@ -13,6 +13,11 @@ const ALPHA_RANK = 3
 const BETA_RANK = 2
 const PUP_RANK = 1
 
+const LOCATION_SAFE = "safe"
+const LOCATION_WARNING = "warning"
+const LOCATION_UNSAFE = "unsafe"
+const LOCATION_UNKNOWN = "unknown"
+
 var Enabled = "enabled"
 
 // ResourceNotFound ...
@@ -23,6 +28,11 @@ func ResourceNotFound(resource string) string {
 // ResourceExists ...
 func ResourceExists(resource string) string {
 	return fmt.Sprintf("This %s already exists.", resource)
+}
+
+// InvalidParam ...
+func InvalidParam(resource string) string {
+	return fmt.Sprintf("The %s you entered is invalid.", resource)
 }
 
 // CustomError ...

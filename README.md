@@ -46,16 +46,31 @@ To make this more fun, we want to make users see their ranking. They are:
     2. When users need to see their ranks, calculate the distribution percentiles. 0-40%, 40-80%, 80-100%. i.e. four numbers including zero.
     3. Use their position in the distribution to determine their rank.
 
+## Location Ranking
+Locations will be ranked using a 5-day average of the number of level-3 and above incidents reported within a 5km radius. This is possible by taking advantage of Mongo's location GeoJSON and 2dsphere indexes.
+| Rank        |    Average   |   Color    | 
+| ---         |      ---     |    ---     |
+| Safe        |    0 - 0.4   |   Green    | 
+| Warning     |    0.5 - 0.9 |   Orange   |
+| Unsafe      |     >= 1     |    Red     |
+
+**N.B.** Further down the line we can use more incident levels and any other new features like incident upvotes to rank locations. For now, we can just stick to number of level-3 incidents and above reported.
+
 ## TODO (Up next)
 - [x] Sign up, login, post entries as user (anonymous or actual user id)
 - [x] Alert types (other, potential harm, emergency, accident, fire, robbery) and their priority levels (1, 2, 3, 4, 5)
-- [ ] Meerkat ranking (alpha, beta, pup)
-- [ ] Ranking locations (Safety score)
+- [x] Meerkat ranking (alpha, beta, pup)
+- [x] Ranking locations (Safety score)
+- [ ] Kubernetes Setup (Local)
+- [ ] Kubernetes Job (Calculate Alpha Ranking at 12am daily)
 - [ ] Custom error message for all validation fields. The default one sucks.
 - [ ] Tests
 - [ ] Mongo driver: before find/find all, add { status: "enabled" }
 - [ ] Forgot Password
 - [ ] Better response than "mongo: no documents in result"
+- [ ] Create location geoJSON from API not client
+- [ ] Pass error instance to error handler and log stack trace properly
+- [ ] Config package
 
 ## Ideas
 - Upvotes on incidents.
