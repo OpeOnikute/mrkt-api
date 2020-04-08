@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"mrkt/constants"
-	"mrkt/handlers"
-	"mrkt/models"
 	"net/http"
+
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/handlers"
+	"github.com/OpeOnikute/mrkt-api/models"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
@@ -325,7 +326,8 @@ func SendErrorResponse(r http.ResponseWriter, status int, message string, data i
 	r.Write([]byte(jsonRes))
 
 	if status == http.StatusInternalServerError {
-		handlers.ErrorLogger.Error(message)
+		lg := new(handlers.Logger)
+		lg.Error(message)
 	}
 }
 

@@ -2,8 +2,8 @@ package models
 
 import (
 	"context"
-	"mrkt/constants"
-	"mrkt/db"
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/db"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"

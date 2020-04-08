@@ -1,7 +1,7 @@
 package router
 
 import (
-	"mrkt/controllers"
+	"github.com/OpeOnikute/mrkt-api/controllers"
 	"net/http"
 	"os"
 

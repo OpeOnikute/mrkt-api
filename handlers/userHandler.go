@@ -3,9 +3,9 @@ package handlers
 import (
 	"context"
 	"log"
-	"mrkt/constants"
-	"mrkt/db"
-	"mrkt/models"
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/db"
+	"github.com/OpeOnikute/mrkt-api/models"
 	"os"
 	"strings"
 	"time"

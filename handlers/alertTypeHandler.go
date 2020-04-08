@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"mrkt/constants"
-	"mrkt/models"
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/models"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 

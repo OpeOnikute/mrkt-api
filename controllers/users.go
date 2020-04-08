@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"mrkt/constants"
-	"mrkt/handlers"
-	"mrkt/models"
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/handlers"
+	"github.com/OpeOnikute/mrkt-api/models"
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"

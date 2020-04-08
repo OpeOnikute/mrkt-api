@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"mrkt/constants"
-	"mrkt/db"
-	"mrkt/models"
 	"os"
 	"time"
+
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/db"
+	"github.com/OpeOnikute/mrkt-api/models"
 
 	geo "github.com/codingsince1985/geo-golang"
 
@@ -37,7 +38,8 @@ func CreateEntry(entry *models.Entry) (*mongo.InsertOneResult, error) {
 	if err == nil {
 		entry.Address = address
 	} else {
-		ErrorLogger.Error(err.Error())
+		lg := new(Logger)
+		lg.Error(err.Error())
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"mrkt/constants"
-	"mrkt/handlers"
-	"mrkt/models"
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/handlers"
+	"github.com/OpeOnikute/mrkt-api/models"
 	"net/http"
 	"strconv"
 
