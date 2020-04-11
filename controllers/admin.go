@@ -326,8 +326,9 @@ func SendErrorResponse(r http.ResponseWriter, status int, message string, data i
 	r.Write([]byte(jsonRes))
 
 	if status == http.StatusInternalServerError {
-		lg := new(handlers.Logger)
-		lg.Error(message)
+		// disable logger till I can figure out nil pointer error
+		// lg := new(handlers.Logger)
+		// lg.Error(message)
 	}
 }
 

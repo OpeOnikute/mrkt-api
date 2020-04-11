@@ -38,8 +38,9 @@ func CreateEntry(entry *models.Entry) (*mongo.InsertOneResult, error) {
 	if err == nil {
 		entry.Address = address
 	} else {
-		lg := new(Logger)
-		lg.Error(err.Error())
+		// disable logger till I can figure out nil pointer error
+		// lg := new(Logger)
+		// lg.Error(err.Error())
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
