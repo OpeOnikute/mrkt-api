@@ -85,6 +85,22 @@ Kubernetes (Local)
 - [ ] Pass error instance to error handler and log stack trace properly
 - [ ] Config package
 
+## Kubernetes
+Shortcut
+- `kube-mrkt` ===> `kubectl --kubeconfig='mrkt-api-kubeconfig.yaml'`
+
+Cluster-level resources
+- Service Account (cicd)
+- Role `~/kube-general/cicd-role.yml`
+- Role binding `~/kube-general/cicd-role-binding.yml`
+- Command `kube-mrkt apply -f ~/kube-general/ --kubeconfig="mrkt-api-kubeconfig.yaml"`
+
+Port forwarding
+- `kube-mrkt port-forward $(kube-mrkt get pod --selector="app=mrkt-api" --output jsonpath='{.items[0].metadata.name}') 8080:12345`
+
+Secrets
+- Create `kube-mrkt create secret generic mrkt-api-secrets --from-literal=MONGO_URL="mongodb+srv://<username>:<pwd>@<insert-url-here>" --from-literal=MONGO_DATABASE=mrkt --from-literal=PORT=12345 --from-literal=JWT_KEY="ssdsdsdsd" --from-literal=GOOGLE_MAPS_KEY=sdsdsd`
+
 ## Ideas
 - Upvotes on incidents.
 - Families/clans. Communities will be clans and you can invite people to join your clan.
