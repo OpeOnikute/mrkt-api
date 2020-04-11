@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mrkt-api
+  namespace: default
+  labels:
+    app: mrkt-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mrkt-api
+  template:
+    metadata:
+      labels:
+        app: mrkt-api
+    spec:
+      containers:
+        - name: mrkt-api
+          image: opeo/mrkt-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 12345
+              name: http
+          env:
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mrkt-api-config
+                  key: MONGO_URL
+            - name: MONGO_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mrkt-api-config
+                  key: MONGO_DATABASE
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: mrkt-api-config
+                  key: PORT
+            - name: JWT_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: mrkt-api-config
+                  key: JWT_KEY
+            - name: GOOGLE_MAPS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: mrkt-api-config
+                  key: GOOGLE_MAPS_KEY

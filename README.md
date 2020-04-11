@@ -56,12 +56,25 @@ Locations will be ranked using a 5-day average of the number of level-3 and abov
 
 **N.B.** Further down the line we can use more incident levels and any other new features like incident upvotes to rank locations. For now, we can just stick to number of level-3 incidents and above reported.
 
+## Building Docker Image
+Regular Docker
+- `docker build . -t opeo/mrkt-api`
+- `docker login`
+- `docker push opeo/mrkt-api`
+Kubernetes (Local)
+- eval $(minikube docker-env)
+- `docker build . -t opeo/mrkt-api`
+- Build mongo: `docker build -t opeo/mongo-auth -f mongo.Dockerfile .`
+
 ## TODO (Up next)
 - [x] Sign up, login, post entries as user (anonymous or actual user id)
 - [x] Alert types (other, potential harm, emergency, accident, fire, robbery) and their priority levels (1, 2, 3, 4, 5)
 - [x] Meerkat ranking (alpha, beta, pup)
 - [x] Ranking locations (Safety score)
-- [ ] Kubernetes Setup (Local)
+- [x] Local Docker setup
+- [ ] Add anonymous option when a user creates.
+- [x] Kubernetes Setup (Local)
+- [ ] Kubernetes Setup (Digital Ocean)
 - [ ] Kubernetes Job (Calculate Alpha Ranking at 12am daily)
 - [ ] Custom error message for all validation fields. The default one sucks.
 - [ ] Tests
@@ -75,9 +88,17 @@ Locations will be ranked using a 5-day average of the number of level-3 and abov
 ## Ideas
 - Upvotes on incidents.
 - Families/clans. Communities will be clans and you can invite people to join your clan.
+- Government agencies. Each incident type would have a particular agency that it gets routed to. Admins would approve before it is passed on, or we would set some criteria for automatic routing. 
 
 # Links
-- JWT - https://www.sohamkamani.com/golang/2019-01-01-jwt-authentication/
-- Password hash - https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72
-- Env variables - https://dev.to/craicoverflow/a-no-nonsense-guide-to-environment-variables-in-go-a2f
-- Request validation - https://medium.com/@apzuk3/input-validation-in-golang-bc24cdec1835
+- JWT 
+    - https://www.sohamkamani.com/golang/2019-01-01-jwt-authentication/
+- Password hash 
+    - https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72
+- Env variables 
+    - https://dev.to/craicoverflow/a-no-nonsense-guide-to-environment-variables-in-go-a2f
+- Request validation 
+    - https://medium.com/@apzuk3/input-validation-in-golang-bc24cdec1835
+- Kubernetes 
+    - [Setup/Pipeline](https://www.digitalocean.com/community/tutorials/how-to-automate-deployments-to-digitalocean-kubernetes-with-circleci)
+    - [Running local images on k8s](https://dzone.com/articles/running-local-docker-images-in-kubernetes-1)

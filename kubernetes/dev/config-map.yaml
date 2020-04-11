@@ -1,0 +1,13 @@
+# This is sample config used in development environments. In production, we should use secrets. 
+# See (https://itnext.io/docker-mongodb-authentication-kubernetes-node-js-75ff995151b6)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mrkt-api-config
+data:
+  # SERVICE_NAME.NAMESPACE.svc.cluster.local:SERVICE_PORT
+  MONGO_URL: mongodb://admin:pass@mrkt-api-mongo-cluster-ip-service.default.svc.cluster.local:27017
+  MONGO_DATABASE: mrkt
+  PORT: 12345
+  JWT_KEY: dkjsd*&$£*$sdsdsfs
+  GOOGLE_MAPS_KEY: 23232

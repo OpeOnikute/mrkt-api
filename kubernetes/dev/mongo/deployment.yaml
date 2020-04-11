@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mrkt-api-mongo-deployment
+spec:
+  selector:
+    matchLabels:
+      app: mrkt-api-mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mrkt-api-mongo
+    spec:
+      containers:
+        # by default, the image is pulled from docker hub
+        - image: opeo/mongo-auth
+          name: mongo
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-persistent-storage
+          persistentVolumeClaim:
+            claimName: mrkt-api-mongo-pv-claim
