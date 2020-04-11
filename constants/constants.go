@@ -18,6 +18,8 @@ const LOCATION_WARNING = "warning"
 const LOCATION_UNSAFE = "unsafe"
 const LOCATION_UNKNOWN = "unknown"
 
+const WELCOME_MESSAGE = "Welcome!"
+
 var Enabled = "enabled"
 
 // ResourceNotFound ...

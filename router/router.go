@@ -1,9 +1,11 @@
 package router
 
 import (
-	"github.com/OpeOnikute/mrkt-api/controllers"
 	"net/http"
 	"os"
+
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/controllers"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -16,6 +18,12 @@ var userController controllers.UsersController
 // GetRouter exposes the main router
 func GetRouter() http.Handler {
 	router := mux.NewRouter()
+
+	router.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
+		data := make(map[string]interface{})
+		data["message"] = constants.WELCOME_MESSAGE
+		controllers.SendSuccessResponse(response, data)
+	}).Methods("GET")
 
 	entryrouter := router.PathPrefix("/entry").Subrouter()
 	entryrouter.HandleFunc("", entriesController.AddEntryEndpoint).Methods("POST")
