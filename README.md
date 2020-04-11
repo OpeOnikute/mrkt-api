@@ -101,6 +101,9 @@ Port forwarding
 Secrets
 - Create `kube-mrkt create secret generic mrkt-api-secrets --from-literal=MONGO_URL="mongodb+srv://<username>:<pwd>@<insert-url-here>" --from-literal=MONGO_DATABASE=mrkt --from-literal=PORT=12345 --from-literal=JWT_KEY="ssdsdsdsd" --from-literal=GOOGLE_MAPS_KEY=sdsdsd`
 
+Get CI CD token
+- `kube-mrkt get secret $(kube-mrkt get secret | grep cicd-token | awk '{print $1}') -o jsonpath='{.data.token}' | base64 --decode`
+
 ## Ideas
 - Upvotes on incidents.
 - Families/clans. Communities will be clans and you can invite people to join your clan.
