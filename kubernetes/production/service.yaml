@@ -8,7 +8,7 @@ spec:
   type: ClusterIP
   ports:
   - port: 12345
-    name: web
+    targetPort: 12345
   selector:
     # Change this selector to match your application's labels
     app: mrkt-api

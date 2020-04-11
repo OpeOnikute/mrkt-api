@@ -104,6 +104,9 @@ Secrets
 Get CI CD token
 - `kube-mrkt get secret $(kube-mrkt get secret | grep cicd-token | awk '{print $1}') -o jsonpath='{.data.token}' | base64 --decode`
 
+Describe Lets Encrypt Certificate
+- `kube-mrkt describe certificate mrkt-api-tls`
+
 ## Ideas
 - Upvotes on incidents.
 - Families/clans. Communities will be clans and you can invite people to join your clan.
@@ -121,3 +124,4 @@ Get CI CD token
 - Kubernetes 
     - [Setup/Pipeline](https://www.digitalocean.com/community/tutorials/how-to-automate-deployments-to-digitalocean-kubernetes-with-circleci)
     - [Running local images on k8s](https://dzone.com/articles/running-local-docker-images-in-kubernetes-1)
+    - [Setting up Ingress Load Balancer](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm)
