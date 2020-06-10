@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/OpeOnikute/mrkt-api/constants"
 	"github.com/OpeOnikute/mrkt-api/handlers"
 	"github.com/OpeOnikute/mrkt-api/models"
-	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/mgo.v2/bson"
@@ -62,9 +63,8 @@ func (c UsersController) LoginEndpoint(response http.ResponseWriter, request *ht
 	}
 
 	user, err := handlers.GetUserByEmail(body.Email, false)
-
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "user")
 		return
 	}
 
@@ -110,14 +110,14 @@ func (c UsersController) DashboardEndpoint(response http.ResponseWriter, request
 	user, err := handlers.GetUserByID(id.Hex(), false)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "user")
 		return
 	}
 
 	entries, err := handlers.GetAllEntries(bson.M{"uploadedBy": id})
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "entry")
 		return
 	}
 

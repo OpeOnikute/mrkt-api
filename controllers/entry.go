@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"github.com/OpeOnikute/mrkt-api/constants"
 	"github.com/OpeOnikute/mrkt-api/handlers"
 	"github.com/OpeOnikute/mrkt-api/models"
-	"net/http"
-	"strconv"
 
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -67,7 +68,7 @@ func (c EntriesController) UpdateEntryEndpoint(response http.ResponseWriter, req
 	uploadedBy := entry.UploadedBy
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "entry")
 		return
 	}
 
@@ -112,8 +113,7 @@ func (c EntriesController) DeleteEntryEndpoint(response http.ResponseWriter, req
 	// get entry
 	entry, err := handlers.GetEntryByID(params["id"])
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		SendQueryErrorResponse(response, err, "entry")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (c EntriesController) GetEntriesEndpoint(response http.ResponseWriter, requ
 
 	results, err := handlers.GetAllEntries(q)
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "entry")
 		return
 	}
 	SendSuccessResponse(response, results)
@@ -158,7 +158,7 @@ func (c EntriesController) GetEntryEndpoint(response http.ResponseWriter, reques
 	params := mux.Vars(request)
 	entry, err := handlers.GetEntryByID(params["id"])
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "entry")
 		return
 	}
 

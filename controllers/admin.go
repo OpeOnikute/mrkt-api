@@ -3,7 +3,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/OpeOnikute/mrkt-api/constants"
 	"github.com/OpeOnikute/mrkt-api/handlers"
@@ -75,7 +78,7 @@ func (c AdminController) AdminLoginEndpoint(response http.ResponseWriter, reques
 	user, err := handlers.GetUserByEmail(body.Email, true)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "admin")
 		return
 	}
 
@@ -108,7 +111,7 @@ func (c AdminController) UpdateUserEndpoint(response http.ResponseWriter, reques
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "admin")
 		return
 	}
 
@@ -138,7 +141,7 @@ func (c AdminController) DeleteUserEndpoint(response http.ResponseWriter, reques
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "admin")
 		return
 	}
 
@@ -159,7 +162,7 @@ func (c AdminController) GetUsersEndpoint(response http.ResponseWriter, request 
 	results, err := handlers.GetAllUsers(isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "admin")
 		return
 	}
 	SendSuccessResponse(response, results)
@@ -173,7 +176,7 @@ func (c AdminController) GetUserEndpoint(response http.ResponseWriter, request *
 	user, err := handlers.GetUserByID(params["id"], isAdmin)
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "admin")
 		return
 	}
 	SendSuccessResponse(response, user)
@@ -228,7 +231,7 @@ func (c AdminController) GetAlertTypeEndpoint(response http.ResponseWriter, requ
 	params := mux.Vars(request)
 	entry, err := alertTypeHandler.FindByID(params["id"])
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "alert type")
 		return
 	}
 	SendSuccessResponse(response, entry)
@@ -242,7 +245,7 @@ func (c AdminController) UpdateAlertTypeEndpoint(response http.ResponseWriter, r
 	alertType, err := alertTypeHandler.FindByID(params["id"])
 
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "alert type")
 		return
 	}
 
@@ -271,7 +274,7 @@ func (c AdminController) DeleteAlertTypeEndpoint(response http.ResponseWriter, r
 	params := mux.Vars(request)
 	result, err := alertTypeHandler.DeleteByID(params["id"])
 	if err != nil {
-		SendErrorResponse(response, http.StatusInternalServerError, err.Error(), defaultRes)
+		SendQueryErrorResponse(response, err, "alert type")
 		return
 	}
 
@@ -309,6 +312,19 @@ func (c AdminController) AdminAuthenticationMiddleware(next http.Handler) http.H
 			SendErrorResponse(w, http.StatusForbidden, constants.AccessDenied, defaultRes)
 		}
 	})
+}
+
+// SendQueryErrorResponse ...
+func SendQueryErrorResponse(r http.ResponseWriter, e error, modelName string) {
+	var status int
+	msg := e.Error()
+	if msg == mongo.ErrNoDocuments.Error() {
+		msg = fmt.Sprintf("We could not find this %s. Please check your details and try again.", modelName)
+		status = http.StatusBadRequest
+	} else {
+		status = http.StatusInternalServerError
+	}
+	SendErrorResponse(r, status, msg, defaultRes)
 }
 
 // SendErrorResponse ...
