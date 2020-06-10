@@ -1,0 +1,1 @@
+docker-compose exec app go install -v ./... && docker-compose restart app

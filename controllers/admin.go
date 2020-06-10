@@ -319,7 +319,7 @@ func SendQueryErrorResponse(r http.ResponseWriter, e error, modelName string) {
 	var status int
 	msg := e.Error()
 	if msg == mongo.ErrNoDocuments.Error() {
-		msg = fmt.Sprintf("We could not find this %s. Please check your details and try again.", modelName)
+		msg = fmt.Sprintf("We could not find any %s. Please check your details and try again.", modelName)
 		status = http.StatusBadRequest
 	} else {
 		status = http.StatusInternalServerError
