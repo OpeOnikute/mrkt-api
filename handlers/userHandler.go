@@ -3,12 +3,13 @@ package handlers
 import (
 	"context"
 	"log"
-	"github.com/OpeOnikute/mrkt-api/constants"
-	"github.com/OpeOnikute/mrkt-api/db"
-	"github.com/OpeOnikute/mrkt-api/models"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/OpeOnikute/mrkt-api/constants"
+	"github.com/OpeOnikute/mrkt-api/db"
+	"github.com/OpeOnikute/mrkt-api/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,7 +47,7 @@ func CreateUser(user *models.User) (*mongo.InsertOneResult, error) {
 
 // GetAllUsers gets all entries
 func GetAllUsers(isAdmin bool) ([]models.User, error) {
-	var results []models.User
+	results := []models.User{}
 	cursor, err := db.Collections.Users.Find(context.Background(), bson.M{"isAdmin": isAdmin})
 	if err != nil {
 		return results, err

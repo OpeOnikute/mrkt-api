@@ -74,7 +74,7 @@ Kubernetes (Local)
 - [x] Local Docker setup
 - [ ] Add anonymous option when a user creates.
 - [x] Kubernetes Setup (Local)
-- [ ] Kubernetes Setup (Digital Ocean)
+- [x] Kubernetes Setup (Digital Ocean)
 - [ ] Kubernetes Job (Calculate Alpha Ranking at 12am daily)
 - [ ] Custom error message for all validation fields. The default one sucks.
 - [ ] Tests
@@ -100,6 +100,7 @@ Port forwarding
 
 Secrets
 - Create `kube-mrkt create secret generic mrkt-api-secrets --from-literal=MONGO_URL="mongodb+srv://<username>:<pwd>@<insert-url-here>" --from-literal=MONGO_DATABASE=mrkt --from-literal=PORT=12345 --from-literal=JWT_KEY="ssdsdsdsd" --from-literal=GOOGLE_MAPS_KEY=sdsdsd`
+- Fetching secrets `kube-mrkt get secret mrkt-api-secrets -o yaml`
 
 Get CI CD token
 - `kube-mrkt get secret $(kube-mrkt get secret | grep cicd-token | awk '{print $1}') -o jsonpath='{.data.token}' | base64 --decode`
